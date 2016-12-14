@@ -1,4 +1,3 @@
-
 package com.contoso.myfirstapp;
 
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +23,7 @@ import com.microsoft.projectoxford.emotion.EmotionServiceClient;
 import com.microsoft.projectoxford.emotion.EmotionServiceRestClient;
 import com.microsoft.projectoxford.emotion.contract.FaceRectangle;
 import com.microsoft.projectoxford.emotion.contract.RecognizeResult;
+import com.microsoft.projectoxford.emotion.contract.Scores;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Detect faces by uploading face images
-    // Frame faces after detection
+// Frame faces after detection
 
     private void detectAndFrame(final Bitmap imageBitmap) {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                                     params[0],
                                     true,         // returnFaceId
                                     false,        // returnFaceLandmarks
-                                    null          // returnFaceAttributes: a string like "age, gender"
+                                    null           // returnFaceAttributes: a string like "age, gender"
                             );
                             if (result == null) {
                                 publishProgress("Detection Finished. Nothing detected");
@@ -131,13 +131,20 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    protected void onPostExecute(List<RecognizeResult> result) {
+                    protected void onPostExecute(List<RecognizeResult> finalFaces) {
 
-                        detectionProgressDialog.dismiss();
-                        if (result == null) return;
+                        if (finalFaces == null) return;
                         ImageView imageView = (ImageView) findViewById(R.id.imageView1);
-                        imageView.setImageBitmap(drawFaceRectanglesOnBitmap(imageBitmap, result));
-                        imageBitmap.recycle();
+                        imageView.setImageBitmap(drawFaceRectanglesOnBitmap(imageBitmap, finalFaces));
+                        for (RecognizeResult currResult : finalFaces) {
+                            Scores faceScore = currResult.scores;
+
+                            detectionProgressDialog.setMessage("Anger: " + (faceScore.anger)
+                                    + "\nContempt: " + (faceScore.contempt) + "\nDisgust: " + (faceScore.disgust)
+                                    + "\nFear: " + (faceScore.fear) + "\nHappiness: " + (faceScore.happiness)
+                                    + "\nNeutral: " + (faceScore.neutral) + "\nSadness: " + (faceScore.sadness)
+                                    + "\nSurprise: " + (faceScore.surprise));
+                        }
                     }
                 };
         detectTask.execute(inputStream);
@@ -149,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setStyle(Paint.Style.STROKE);
-        paint.setColor(Color.BLUE);
+        paint.setColor(Color.RED);
         int stokeWidth = 2;
         paint.setStrokeWidth(stokeWidth);
         if (faces != null) {
